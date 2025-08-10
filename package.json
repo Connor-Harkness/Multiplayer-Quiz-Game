@@ -1,0 +1,32 @@
+{
+  "name": "multiplayer-quiz-game",
+  "version": "1.0.0",
+  "description": "A multiplayer quiz game with Node.js backend and React frontend",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/server.js",
+    "client": "cd client && npm start",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "install-all": "npm install && npm run install-server && npm run install-client"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Connor-Harkness/Multiplayer-Quiz-Game"
+  },
+  "keywords": [
+    "quiz",
+    "multiplayer",
+    "nodejs",
+    "react",
+    "socket.io"
+  ],
+  "author": "Connor Harkness",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.1"
+  }
+}
