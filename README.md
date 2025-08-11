@@ -63,6 +63,31 @@ Run both server and client simultaneously:
 npm run dev
 ```
 
+### Accessing from Mobile Devices (Development)
+To test on mobile browsers using your local IP address:
+
+1. Find your local IP address:
+   ```bash
+   # On Windows
+   ipconfig
+   
+   # On macOS/Linux  
+   ifconfig | grep inet
+   ```
+
+2. The client will automatically connect to the server using the same hostname/IP you're accessing it from. No additional configuration needed!
+
+3. Access the game from your mobile browser using your local IP:
+   ```
+   http://192.168.1.100:3000  # Replace with your actual IP
+   ```
+
+### Custom Server URL (Optional)
+If you need to specify a custom server URL, create a `.env.local` file in the `client` directory:
+```bash
+REACT_APP_SERVER_URL=http://192.168.1.100:5000
+```
+
 ### Production Mode
 1. Build the client:
 ```bash
@@ -116,6 +141,7 @@ npm run client
 - Socket.io
 - Axios (for OpenTDB API calls)
 - UUID (for unique identifiers)
+- dotenv (for environment configuration)
 
 ### Frontend
 - React 18
@@ -123,6 +149,31 @@ npm run client
 - React Router
 - Socket.io Client
 - Axios
+
+### Cross-Origin Resource Sharing (CORS)
+The application is configured to work across different environments:
+- **Development**: Supports localhost and local IP addresses for mobile testing
+- **Production**: Configured for `https://quiz_game.void-industries.co.uk`
+- **Mobile Browser Support**: Automatically detects and connects to the appropriate server URL
+- **Custom Deployment**: Environment variables allow for flexible configuration
+
+## Deployment
+
+### Production Deployment
+1. Set environment variables in the server:
+   ```bash
+   PORT=5000
+   ALLOWED_ORIGINS=https://quiz_game.void-industries.co.uk
+   ```
+
+2. Build the client for production:
+   ```bash
+   cd client && npm run build
+   ```
+
+3. Serve the built client files and start the server on the target domain.
+
+The application will automatically handle CORS for the configured production domain.
 
 ## API Reference
 
