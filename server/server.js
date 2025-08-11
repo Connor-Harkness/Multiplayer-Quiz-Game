@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -7,14 +8,43 @@ const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS origins based on environment
+const getAllowedOrigins = () => {
+  const origins = [];
+  
+  // Always allow localhost for development
+  origins.push('http://localhost:3000', 'http://127.0.0.1:3000');
+  
+  // Allow production domain
+  origins.push('https://quiz_game.void-industries.co.uk', 'http://quiz_game.void-industries.co.uk');
+  
+  // Allow local network access (for mobile testing)
+  // This regex allows any local IP on port 3000
+  origins.push(/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:3000$/);
+  origins.push(/^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:3000$/);
+  origins.push(/^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:3000$/);
+  
+  // If custom origins are specified in environment
+  if (process.env.ALLOWED_ORIGINS) {
+    origins.push(...process.env.ALLOWED_ORIGINS.split(','));
+  }
+  
+  return origins;
+};
+
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: getAllowedOrigins(),
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: getAllowedOrigins(),
+  credentials: true
+}));
 app.use(express.json());
 
 // Game state
