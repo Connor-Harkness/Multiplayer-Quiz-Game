@@ -7,14 +7,48 @@ const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
+  'http://0.0.0.0:5000',
+  'https://quiz_game.void-industries.co.uk'
+];
+
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // same-origin or mobile app
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow direct IP access (development over LAN)
+      try {
+        const url = new URL(origin);
+        const host = url.hostname;
+        const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+        if (isIp) return callback(null, true);
+      } catch (_) {}
+      return callback(new Error('CORS not allowed'));
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    try {
+      const url = new URL(origin);
+      const host = url.hostname;
+      const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+      if (isIp) return callback(null, true);
+    } catch (_) {}
+    return callback(new Error('CORS not allowed'));
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Game state
@@ -466,6 +500,21 @@ function endGame(lobby) {
 }
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Serve client production build if available for same-origin hosting
+try {
+  const path = require('path');
+  const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+  app.use(express.static(clientBuildPath));
+  app.get('*', (req, res, next) => {
+    // Only handle non-API routes
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+} catch (e) {
+  console.warn('Client build not served:', e.message);
+}
+
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
 });

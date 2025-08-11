@@ -28,8 +28,25 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000', {
-      transports: ['websocket']
+    // Prefer same-origin by default to avoid mixed content/CORS issues.
+    // Allow override via REACT_APP_SOCKET_URL for local development.
+    // If running via CRA on port 3000, automatically point to the same host on port 5000.
+    let socketUrl = process.env.REACT_APP_SOCKET_URL as string | undefined;
+    if (!socketUrl && typeof window !== 'undefined') {
+      const { protocol, hostname, port } = window.location;
+      if (port === '3000') {
+        const targetPort = (process.env.REACT_APP_SOCKET_PORT as string) || '5000';
+        socketUrl = `${protocol}//${hostname}:${targetPort}`;
+      } else {
+        socketUrl = undefined; // same-origin
+      }
+    }
+
+    const newSocket = io(socketUrl, {
+      // Allow both websocket and polling for wider compatibility on mobile/networks
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+      autoConnect: true
     });
 
     newSocket.on('connect', () => {
